@@ -11,6 +11,9 @@ const cors = require('cors')
 var winston = require('./config/winston')
 const fileConstants = require('./config/fileHandlingConstants')
 
+require('./app/middleware/passport-setup.js');
+const passport = require('passport');
+const cookieSession = require("cookie-session");
 const indexRouter = require('./app/routes/index')
 const authRouter = require('./app/routes/auth')
 const usersRouter = require('./app/routes/user')
@@ -30,6 +33,13 @@ app.use(cors())
 
 app.use(bodyParser.json({ limit: '200mb' }))
 app.use(bodyParser.urlencoded(fileConstants.fileParameters))
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(cookieSession({
+  name: 'test',
+  keys: ['key1', 'key2']
+}))
 
 const memoryStorage = multer.memoryStorage()
 app.use(multer({ storage: memoryStorage }).single('file'))
@@ -81,6 +91,21 @@ app.use('/shortUrl', shortUrlRouter)
 app.use('/comment', commentRouter)
 app.use('/project', projectRouter)
 app.use('/proposal', proposalRouter)
+
+app.get('/good', (req, res) => res.send('Welcome'));
+app.get('/aaa', (req, res) => res.send('Hii'));
+app.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+app.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    res.redirect('/good');
+  });
+
+app.get('/logout', (req, res) => {
+  req.session = null;
+  res.redirect('/aaa');
+})
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
