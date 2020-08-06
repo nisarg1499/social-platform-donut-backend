@@ -1,5 +1,6 @@
 const User = require('../models/User')
 const HttpStatus = require('http-status-codes')
+const passport = require('passport')
 module.exports = {
   authenticateUser: async (req, res, next) => {
     const email = req.body.email
@@ -17,5 +18,13 @@ module.exports = {
   },
   logoutAll: (req, res, next) => {
     res.status(HttpStatus.OK).json({ success: 'ok' })
+  },
+  googleAuth: passport.authenticate('google', {
+     scope: ['profile', 'email'] 
+  }),
+  googleAuthCallback: passport.authenticate('google', { failureRedirect: '/login' }),
+  function(req, res) {
+    console.log(req.user.emails[0].value);
+    res.status(HttpStatus.OK).json({ success: 'ok' });
   }
 }

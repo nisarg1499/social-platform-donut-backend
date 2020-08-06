@@ -8,12 +8,12 @@ const socket = require('socket.io')
 const multer = require('multer')
 const bodyParser = require('body-parser')
 const cors = require('cors')
+const passport = require('passport')
+const cookieSession = require('cookie-session')
 var winston = require('./config/winston')
 const fileConstants = require('./config/fileHandlingConstants')
+require('./app/middleware/passport-setup.js')
 
-require('./app/middleware/passport-setup.js');
-const passport = require('passport');
-const cookieSession = require("cookie-session");
 const indexRouter = require('./app/routes/index')
 const authRouter = require('./app/routes/auth')
 const usersRouter = require('./app/routes/user')
@@ -37,7 +37,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(cookieSession({
-  name: 'test',
+  maxAge: 24 * 60 * 60 * 1000,
   keys: ['key1', 'key2']
 }))
 
@@ -93,18 +93,11 @@ app.use('/project', projectRouter)
 app.use('/proposal', proposalRouter)
 
 app.get('/good', (req, res) => res.send('Welcome'));
-app.get('/aaa', (req, res) => res.send('Hii'));
-app.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-app.get('/google/callback', passport.authenticate('google', { failureRedirect: '/login' }),
-  function(req, res) {
-    // Successful authentication, redirect home.
-    res.redirect('/good');
-  });
 
 app.get('/logout', (req, res) => {
   req.session = null;
-  res.redirect('/aaa');
+  req.logout();
+  res.send(req.user);
 })
 
 // catch 404 and forward to error handler

@@ -23,4 +23,16 @@ router.post(
   authController.logoutAll
 )
 
+// google auth login
+router.get(
+  '/google',
+  authController.googleAuth
+)
+
+// google auth callback
+router.get(
+  '/google/callback',
+  authController.googleAuthCallback
+)
+
 module.exports = router
